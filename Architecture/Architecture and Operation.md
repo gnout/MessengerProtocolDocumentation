@@ -4,43 +4,43 @@
 
 ## Parties involved
 
-Following are 2 parties involved in the operation of the plugin:
+The following two parties are involved in the operation of the plugin:
 
-* *Distributor*: is the party that makes the request to get data (i.e. HotelPlan)
-* *Supplier*: is the party that receives the request and responds with the results (AVRA)
+* *Distributor*: The party that initiates requests to obtain data
+* *Supplier*: The party that receives requests and responds with the corresponding results
 
 ## Service types calls
 
-There are 3 major calls for every service
+There are three primary call types for each service:
 
-* xxList: A list will get all the available items with general information (i.e. all the accommodations) 
-* xxInfo: All available information for a specific item (i.e. all the information that we have about an accommodation)
-* xxSearch: Search the data with the intent to book (i.e. book an accommodation for specific dates)
+* __xxList__: Retrieves a list of all available items with general information (e.g., a list of all accommodations).
+* __xxInfo__: Retrieves comprehensive information for a specific item (e.g., all details about a particular accommodation).
+* __xxSearch__: Searches the data with the intention of booking (e.g., booking an accommodation for specific dates).
 
 ## Static and Dynamic data
 
-In order to avoid unnecessary traffic, static data will be stored (on chain or off chain) with the responsibility of the *distributor*. The *distributor* will call once the *xxList* service to get all the available information (i.e. accommodations)  
+To minimize unnecessary traffic, static data will be stored (on-chain probably with *IPFS* or off-chain) under the responsibility of the *distributor*. The *distributor* will call the *xxList* or *xxInfo* service once to retrieve all available data (e.g., accommodations).
 
-When the *distributor* will perform a *xxSearch* with the intent to book, our web API will return a result and the *distributor* will match the __supplier_code__ (description follows) returned by the search with the one in the static data
+When the *distributor* performs an *xxSearch* with the intent to book, the supplier will return a result. The distributor will then match the `supplier_code` (explained below) from the search result with the corresponding code in the static data. 
+
+__Important__: The *distributor* must handle data from different *suppliers* with care to ensure consistency.
 
 ### Supplier Code
 
-This field need to be consistent in all calls (our responsibility) and is the link between the static data and the dynamic data. Every *xxlist* that we return should have our item id (the __supplier_code__). Every *xxSearch* that we return should have consistent item id ((the __supplier_code__))
+This field must be consistent across all calls (*supplier's* responsibility) and serves as the link between the static and dynamic data. Every *xxList* call that the *supplier* returns must include the *supplier's* item ID (the `supplier_code`). Every *xxSearch* call that the *supplier* returns must include a consistent item ID (the `supplier_code`)
 
-### Timestamp last_modified
+### Field `Timestamp last_modified`
 
-Every now and then, the *distributor* may call the *xxList* service to get an updated list. The __last_modified__ field will contain the items that were updated or created after that date. For example, the *distributor* may call the accommodation list again to find out which accommodation have been added or updated after his last call (..and add them to his static data)  
+Periodically, the *distributor* may call the *xxList* or *xxInfo* service again to retrieve updated data. The `last_modified` field will indicate the date and time of the *distributor's* most recent call. The *supplier's* response will include __only__ the updated data.  
 
-As AVRA we don't this information. We will resolve this internally without involving the plugin. If we have this information, the documentation will be updated accordingly.
+Here is an example to illustrate the concept:  
 
-## Getting data from our API
+* The *distributor* calls the *xxList* service on January 1st and receives 100 accommodations. 
+* On February 1st, a new accommodation is added to the *supplier's* list. 
+* The *distributor* calls the *xxList* service again and sets the `last_modified` value to January 1st (the date of the previous call).
+* The *supplier* returns a result containing only the new accommodation added on February 1st.
 
-The mapping between the the protocol and our web API is not always 1 on 1.  
+This approach minimizes unnecessary data exchange, which is crucial for cost-efficiency on the blockchain.
 
-In some case multiple calls to our web API need to be made in order to gather the necessary data. In this case the documentation will include all the calls that are needed to complete the necessary data
+## Version compatibility
 
-In some other cases, the protocol will ask information for multiple products where our web API can only return information for only 1 product. Also in this case multiple calls to our api are necessary to bring data for all the requested products
-
-## Usernames and passwords
-
-In our web API, users (username and password) are connected to a specific client. The responses of our web API will differ depending on "who is asking!". For the plugin to work properly we will need to have a mapping between the *distributor* and the credentials that belongs to the particular distributor so that the results of the web API are correct.
