@@ -44,3 +44,18 @@ This approach minimizes unnecessary data exchange, which is crucial for cost-eff
 
 ## Version compatibility
 
+Message exchange between a *distributor* and a *supplier* requires compatible versions of the Messenger Protocol to avoid potential incompatibilities. Otherwise, message incompatibility may occur.  
+
+Every message within the protocol includes a field of type `Version` (see "Common Types" for details). This type consists of three numbers: major version, minor version, and patch.  
+
+In essence, when a *distributor* sends a request message, the *supplier* must respond with a message using the same major version.
+
+Here's how it works: The `Version` type implements semantic versioning for the Protocol. Semantic versioning comprises three numbers that form a version:
+
+* major version: Introduces significant changes, potentially including breaking changes from previous versions.
+* minor version: Introduces minor changes and new features that are backward compatible.
+* patch: Includes bug fixes and other improvements.
+
+When sending a request, the *distributor* must include the Protocol version used by its plugin. Upon receiving the request, the *supplier* must check the requested Protocol version. If the *supplier* can handle a compatible message (same major version), it sends a response with the same major version as the request.
+
+This ensures compatibility between Protocol versions used by *distributor* and *supplier* plugins.
