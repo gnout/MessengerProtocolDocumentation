@@ -19,7 +19,7 @@ There are three primary call types for each service:
 
 ## Static and Dynamic data
 
-To minimize unnecessary traffic, static data will be stored (on-chain probably with *IPFS* or off-chain) under the responsibility of the *distributor*. The *distributor* will call the *xxList* or *xxInfo* service once to retrieve all available data (e.g., accommodations).
+To minimize unnecessary traffic, static data will be stored off-chain under the responsibility of the *distributor*. The *distributor* will call the *xxList* or *xxInfo* service once to retrieve all available data (e.g., accommodations).
 
 When the *distributor* performs an *xxSearch* with the intent to book, the supplier will return a result. The distributor will then match the `supplier_code` (explained below) from the search result with the corresponding code in the static data. 
 
@@ -40,7 +40,18 @@ Here is an example to illustrate the concept:
 * The *distributor* calls the *xxList* service again and sets the `last_modified` value to January 1st (the date of the previous call).
 * The *supplier* returns a result containing only the new accommodation added on February 1st.
 
-This approach minimizes unnecessary data exchange, which is crucial for cost-efficiency on the blockchain.
+This approach minimizes unnecessary data exchange, which is crucial for cost-efficiency on the blockchain.  
+
+Every product contains a field called `ProductStatus`. The field is an enum and the definition is the following. When a *distributor* retrieves the updated list, each product will indicate its status. If the product is new, the status will be `PRODUCT_STATUS_NEW` if updated, `PRODUCT_STATUS_MODIFIED` if deleted, `PRODUCT_STATUS_DEACTIVATED`. This informs the *distributor* about product creation, updates, or deletions.
+
+```protoBuf
+enum ProductStatus {
+	PRODUCT_STATUS_UNSPECIFIED = 0;
+	PRODUCT_STATUS_NEW = 1;
+	PRODUCT_STATUS_MODIFIED = 2;
+	PRODUCT_STATUS_DEACTIVATED = 3;
+}
+```
 
 ## Version compatibility
 
@@ -59,3 +70,5 @@ Here's how it works: The `Version` type implements semantic versioning for the P
 When sending a request, the *distributor* must include the Protocol version used by its plugin. Upon receiving the request, the *supplier* must check the requested Protocol version. If the *supplier* can handle a compatible message (same major version), it sends a response with the same major version as the request.
 
 This ensures compatibility between Protocol versions used by *distributor* and *supplier* plugins.
+
+__Note__ While minor version differences between *distributor* and *supplier* plugins won't disrupt communication, functionality may be impacted. However, a minor version may include for instance a new item in an enum which may refine a search. Although, the protocol will not break, the search results may not utilize the new enum item and could be incompatible with the intended search parameters. *Distributors* and *suppliers* must check request and response versions, keeping potential compatibility issues in mind. 
